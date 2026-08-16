@@ -21,13 +21,13 @@
 </head>
 <body>
 
-    <h1>🇯🇵 日語核心單字卡（標準真人發音版）</h1>
+    <h1>🇯🇵 日語核心單字卡（高音質系統發音版）</h1>
 
     <div class="container">
         <!-- 單字卡 1 -->
         <div class="card">
             <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('具合')">
+            <button class="audio-btn" onclick="playAudio('具合（ぐあい）')">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="word">具合</div>
@@ -38,7 +38,7 @@
         <!-- 單字卡 2 -->
         <div class="card">
             <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('銀行')">
+            <button class="audio-btn" onclick="playAudio('銀行（ぎんこう）')">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="word">銀行</div>
@@ -49,7 +49,7 @@
         <!-- 單字卡 3 -->
         <div class="card">
             <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('学生')">
+            <button class="audio-btn" onclick="playAudio('学生（がくせい）')">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="word">學生</div>
@@ -60,7 +60,7 @@
         <!-- 單字卡 4 -->
         <div class="card">
             <div class="type">頭高型 [1]</div>
-            <button class="audio-btn" onclick="playAudio('ご飯')">
+            <button class="audio-btn" onclick="playAudio('ご飯（ごはん）')">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="word">ご飯</div>
@@ -71,7 +71,7 @@
         <!-- 單字卡 5 -->
         <div class="card">
             <div class="type">頭高型 [1]</div>
-            <button class="audio-btn" onclick="playAudio('玄関')">
+            <button class="audio-btn" onclick="playAudio('玄関（げんかん）')">
                 <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
             </button>
             <div class="word">玄関</div>
@@ -81,15 +81,37 @@
     </div>
 
     <script>
+        // 初始化發音引擎，預先加載語音清單
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.getVoices();
+        }
+
         function playAudio(text) {
-            // 使用新版且支援 HTTPS 的 Google TTS 語音接口，並加入強制的用戶端行為以防止被阻擋
-            const audioUrl = `https://google.com{encodeURIComponent(text)}`;
+            if (!('speechSynthesis' in window)) {
+                alert("抱歉，您的瀏覽器不支援系統發音功能。");
+                return;
+            }
+
+            // 停止當前正在播放的其他聲音
+            window.speechSynthesis.cancel();
+
+            // 建立語音請求，擷取假名部分發音更準確
+            const cleanedText = text.includes('（') ? text.split('（')[1].replace('）', '') : text;
+            const utterance = new SpeechSynthesisUtterance(cleanedText);
             
-            const audio = new Audio(audioUrl);
-            audio.play().catch(error => {
-                console.error("my-cards/:168 音檔播放失敗，請檢查網路連線：", error);
-                alert("無法載入發音，請確認您的裝置已連接網路並允許音檔自動播放。");
-            });
+            // 強制設定為日文發音
+            utterance.lang = 'ja-JP'; 
+            utterance.rate = 0.9; // 稍微放慢一點點方便學習
+
+            // 尋找系統內建的最佳日語真人語音包
+            const voices = window.speechSynthesis.getVoices();
+            const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang.startsWith('ja'));
+            if (jaVoice) {
+                utterance.voice = jaVoice;
+            }
+
+            // 執行播放
+            window.speechSynthesis.speak(utterance);
         }
     </script>
 </body>
