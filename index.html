@@ -1,118 +1,207 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日語單字真人發音單字卡</title>
+    <title>日語核心假名漢字對照直讀表</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f5f7fa; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        h1 { color: #2c3e50; margin-bottom: 30px; }
-        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 1200px; }
-        .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 25px; width: 280px; position: relative; border: 1px solid #e2e8f0; transition: transform 0.2s; }
-        .card:hover { transform: translateY(-5px); }
-        .type { font-size: 12px; color: #a0aec0; font-weight: bold; margin-bottom: 8px; }
-        .word { font-size: 28px; color: #1a202c; font-weight: 700; margin: 10px 0; }
-        .kana { font-size: 16px; color: #718096; margin-bottom: 12px; }
-        .mean { font-size: 15px; color: #4a5568; border-top: 1px solid #edf2f7; padding-top: 12px; margin-top: 12px; }
-        .audio-btn { position: absolute; top: 20px; right: 20px; background: #3182ce; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
-        .audio-btn:hover { background: #2b6cb0; }
-        .audio-btn svg { width: 18px; height: 18px; fill: white; }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1050px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 26px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eef2f3;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #fafbfc;
+        }
+        ruby {
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+        rt {
+            font-size: 13px;
+            font-weight: normal;
+            padding-bottom: 4px;
+        }
+        rt.first-rt {
+            color: #1e88e5 !important;
+            font-weight: bold;
+        }
+        rt.normal-rt {
+            color: #333333;
+        }
+        .overline {
+            text-decoration: overline;
+            text-decoration-thickness: 2px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .accent-num {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        .pos-badge {
+            color: #2c3e50;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .mean-text {
+            font-size: 15px;
+        }
+        .btn-play {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-play:hover { background-color: #27ae60; }
+        .btn-play:active { background-color: #1e8449; }
     </style>
 </head>
 <body>
 
-    <h1>🇯🇵 日語核心單字卡（高音質系統發音版）</h1>
+<div class="container">
+    <h1>🇯🇵 日語核心假名漢字對照直讀表</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>序號</th>
+                <th>發音類型</th>
+                <th>開頭假名</th>
+                <th>日文單字範例 (上假名/下漢字)</th>
+                <th>重音標記 (一橫)</th>
+                <th>詞性</th>
+                <th>中文意思</th>
+                <th>即時發音</th>
+            </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+    </table>
+</div>
 
-    <div class="container">
-        <!-- 單字卡 1 -->
-        <div class="card">
-            <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('具合（ぐあい）')">
-                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
-            <div class="word">具合</div>
-            <div class="kana">ぐあい</div>
-            <div class="mean">身體狀況、事物狀態</div>
-        </div>
+<script>
+    const data = [
+        { type: '濁音', kana: 'が', rubyHtml: '<ruby>学<rt class="first-rt">がっ</rt>校<rt class="normal-rt">こう</rt></ruby>', accent: '<span class="overline">が</span>っこう', num: '(①)', pos: '[名詞]', mean: '學校', query: 'がっこう' },
+        { type: '濁音', kana: 'ぎ', rubyHtml: '<ruby>銀<rt class="first-rt">ぎん</rt>行<rt class="normal-rt">こう</rt></ruby>', accent: '<span class="overline">ぎ</span>んこう', num: '(①)', pos: '[名詞]', mean: '銀行', query: 'ぎん開' },
+        { type: '濁音', kana: 'ぐ', rubyHtml: '<ruby>軍<rt class="first-rt">ぐん</rt>人<rt class="normal-rt">じん</rt></ruby>', accent: '<span class="overline">ぐ</span>んじん', num: '(①)', pos: '[名詞]', mean: '軍人', query: 'ぐんじん' },
+        { type: '濁音', kana: 'げ', rubyHtml: '<ruby>元<rt class="first-rt">げん</rt>気<rt class="normal-rt">き</rt></ruby>', accent: '<span class="overline">げ</span>んき', num: '(①)', pos: '[形容動詞, 名詞]', mean: '健康/精神', query: 'げんき' },
+        { type: '濁音', kana: 'ご', rubyHtml: '<ruby>飯<rt class="first-rt">ご</rt>飯<rt class="normal-rt">はん</rt></ruby>', accent: '<span class="overline">ご</span>はん', num: '(①)', pos: '[名詞]', mean: '白飯/正餐', query: 'ごはん' },
+        { type: '濁音', kana: 'ざ', rubyHtml: '<ruby>雜<rt class="first-rt">ざっ</rt>誌<rt class="normal-rt">し</rt></ruby>', accent: '<span class="overline">ざ</span>っし', num: '(①)', pos: '[名詞]', mean: '雜誌', query: 'ざっし' },
+        { type: '濁音', kana: 'じ', rubyHtml: '<ruby>地<rt class="first-rt">じ</rt>震<rt class="normal-rt">しん</rt></ruby>', accent: '<span class="overline">じ</span>しん', num: '(①)', pos: '[名詞]', mean: '地震', query: 'じしん' },
+        { type: '濁音', kana: 'ず', rubyHtml: 'ズボン', accent: '<span class="overline">ず</span>ぼん', num: '(①)', pos: '[名詞]', mean: '長褲 (外來語無對應漢字)', query: 'ズボン' },
+        { type: '濁音', kana: 'ぜ', rubyHtml: '<ruby>全<rt class="first-rt">ぜん</rt>部<rt class="normal-rt">ぶ</rt></ruby>', accent: '<span class="overline">ぜ</span>んぶ', num: '(①)', pos: '[名詞, 副詞]', mean: '全部', query: 'ぜんぶ' },
+        { type: '濁音', kana: 'ぞ', rubyHtml: '<ruby>象<rt class="first-rt">ぞう</rt></ruby>', accent: '<span class="overline">ぞ</span>う', num: '(①)', pos: '[名詞]', mean: '大象', query: 'ぞう' },
+        { type: '濁音', kana: 'だ', rubyHtml: '<ruby>大<rt class="first-rt">だい</rt>学<rt class="normal-rt">がく</rt></ruby>', accent: '<span class="overline">だ</span>いがく', num: '(①)', pos: '[名詞]', mean: '大學', query: 'だいがく' },
+        { type: '濁音', kana: 'ぢ', rubyHtml: '<ruby>鼻<rt class="first-rt">はな</rt>血<rt class="normal-rt">ぢ</rt></ruby>', accent: 'はな<span class="overline">ぢ</span>', num: '(⓪)', pos: '[名詞]', mean: '流鼻血 (常考連濁音)', query: 'はなぢ' },
+        { type: '濁音', kana: 'づ', rubyHtml: '<ruby>続<rt class="first-rt">つづ</rt>く<rt class="normal-rt">く</rt></ruby>', accent: 'つ<span class="overline">づ</span>く', num: '(⓪)', pos: '[動詞]', mean: '持續', query: 'つづく' },
+        { type: '濁音', kana: 'で', rubyHtml: '<ruby>電<rt class="first-rt">でん</rt>話<rt class="normal-rt">わ</rt></ruby>', accent: '<span class="overline">で</span>んわ', num: '(⓪)', pos: '[名詞, 動詞]', mean: '電話', query: 'でんわ' },
+        { type: '濁音', kana: 'ど', rubyHtml: 'ドア', accent: '<span class="overline">ど</span>あ', num: '(①)', pos: '[名詞]', mean: '門 (外來語無對應漢字)', query: 'ドア' },
+        { type: '濁音', kana: 'ば', rubyHtml: 'バナナ', accent: '<span class="overline">ば</span>なな', num: '(①)', pos: '[名詞]', mean: '香蕉 (外來語無對應漢字)', query: 'バナナ' },
+        { type: '濁音', kana: 'び', rubyHtml: 'ビル', accent: '<span class="overline">び</span>る', num: '(①)', pos: '[名詞]', mean: '大樓 (外來語無對應漢字)', query: 'ビル' },
+        { type: '濁音', kana: 'ぶ', rubyHtml: '<ruby>葡<rt class="first-rt">ぶ</rt>萄<rt class="normal-rt">どう</rt></ruby>', accent: '<span class="overline">ぶ</span>どう', num: '(⓪)', pos: '[名詞]', mean: '葡萄', query: 'ぶ結婚' },
+        { type: '濁音', kana: 'べ', rubyHtml: '<ruby>勉<rt class="first-rt">べん</rt>強<rt class="normal-rt">きょう</rt></ruby>', accent: '<span class="overline">べ</span>んきょう', num: '(⓪)', pos: '[名詞, 動詞]', mean: '學習/讀書', query: 'べんきょう' },
+        { type: '濁音', kana: 'ぼ', rubyHtml: '<ruby>帽<rt class="first-rt">ぼう</rt>子<rt class="normal-rt">し</rt></ruby>', accent: '<span class="overline">ぼ</span>うし', num: '(⓪)', pos: '[名詞]', mean: '帽子', query: 'ぼうし' },
 
-        <!-- 單字卡 2 -->
-        <div class="card">
-            <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('銀行（ぎんこう）')">
-                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
-            <div class="word">銀行</div>
-            <div class="kana">ぎんこう</div>
-            <div class="mean">銀行</div>
-        </div>
+        { type: '半濁音', kana: 'ぱ', rubyHtml: 'パン', accent: '<span class="overline">ぱ</span>ん', num: '(①)', pos: '[名詞]', mean: '麵包', query: 'パン' },
+        { type: '半濁音', kana: 'ぴ', rubyHtml: 'ピアノ', accent: '<span class="overline">ぴ</span>あ の', num: '(①)', pos: '[名詞]', mean: '鋼琴', query: 'ピアノ' },
+        { type: '半濁音', kana: 'ぷ', rubyHtml: 'プール', accent: '<span class="overline">ぷ</span>ーる', num: '(①)', pos: '[名詞]', mean: '游泳池', query: 'プール' },
+        { type: '半濁音', kana: 'ぺ', rubyHtml: 'ペン', accent: '<span class="overline">ぺ</span>ん', num: '(①)', pos: '[名詞]', mean: '筆', query: 'ペン' },
+        { type: '半濁音', kana: 'ぽ', rubyHtml: 'ポケット', accent: '<span class="overline">ぽ</span>けっと', num: '(⑧)', pos: '[名詞]', mean: '口袋', query: 'ポケット' },
 
-        <!-- 單字卡 3 -->
-        <div class="card">
-            <div class="type">平板型 [0]</div>
-            <button class="audio-btn" onclick="playAudio('学生（がくせい）')">
-                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
-            <div class="word">學生</div>
-            <div class="kana">がくせい</div>
-            <div class="mean">學生</div>
-        </div>
+        { type: '拗音', kana: 'きゃ', rubyHtml: 'キャベツ', accent: '<span class="overline">きゃ</span>べつ', num: '(①)', pos: '[名詞]', mean: '高麗菜', query: 'キャベツ' },
+        { type: '拗音', kana: 'きゅ', rubyHtml: '<ruby>胡<rt class="first-rt">きゅう</rt>瓜<rt class="normal-rt">り</rt></ruby>', accent: '<span class="overline">きゅ</span>うり', num: '(①)', pos: '[名詞]', mean: '小黃瓜', query: 'きゅうり' },
+        { type: '拗音', kana: 'きょ', rubyHtml: '<ruby>今<rt class="first-rt">きょう</rt>日<rt class="normal-rt"></rt></ruby>', accent: '<span class="overline">きょ</span>う', num: '(①)', pos: '[名詞]', mean: '今天', query: 'きょう' },
+        { type: '拗音', kana: 'しゃ', rubyHtml: '<ruby>写<rt class="first-rt">しゃ</rt>真<rt class="normal-rt">しん</rt></ruby>', accent: '<span class="overline">しゃ</span>しん', num: '(⓪)', pos: '[名詞]', mean: '照片', query: 'しゃしん' },
+        { type: '拗音', kana: 'しゅ', rubyHtml: '<ruby>趣<rt class="first-rt">しゅ</rt>味<rt class="normal-rt">mi</rt></ruby>', accent: '<span class="overline">しゅ</span>み', num: '(①)', pos: '[名詞]', mean: '興趣', query: 'しゅみ' },
+        { type: '拗音', kana: 'しょ', rubyHtml: '<ruby>食<rt class="first-rt">しょく</rt>堂<rt class="normal-rt">どう</rt></ruby>', accent: '<span class="overline">しょ</span>くどう', num: '(⓪)', pos: '[名詞]', mean: '餐廳/食堂', query: 'しょくどう' },
+        { type: '拗音', kana: 'ちゃ', rubyHtml: '<ruby>茶<rt class="first-rt">ちゃ</rt></ruby>', accent: '<span class="overline">ちゃ</span>', num: '(⓪)', pos: '[名詞]', mean: '茶', query: 'ちゃ' },
+        { type: '拗音', kana: 'ちゅ', rubyHtml: '<ruby>注<rt class="first-rt">ちゅう</rt>射<rt class="normal-rt">sya</rt></ruby>', accent: '<span class="overline">ちゅ</span>うしゃ', num: '(⓪)', pos: '[名詞, 動詞]', mean: '打針', query: 'ちゅうしゃ' },
+        { type: '拗音', kana: 'ちょ', rubyHtml: 'チョコ', accent: '<span class="overline">ちょ</span>こ', num: '(①)', pos: '[名詞]', mean: '巧克力', query: 'チョコ' },
+        { type: '拗音', kana: 'にゃ', rubyHtml: 'にゃんこ', accent: '<span class="overline">にゃ</span>んこ', num: '(①)', pos: '[名詞]', mean: '小貓咪 (口語)', query: 'にゃんこ' },
+        { type: '拗音', kana: 'にゅ', rubyHtml: '<ruby>入<rt class="first-rt">にゅう</rt>学<rt class="normal-rt">がく</rt></ruby>', accent: '<span class="overline">にゅう</span>がく', num: '(⓪)', pos: '[名詞, 動詞]', mean: '入學', query: 'にゅうがく' },
+        { type: '拗音', kana: 'にょ', rubyHtml: 'にょろにょろ', accent: '<span class="overline">にょ</span>ろにょろ', num: '(①)', pos: '[副詞]', mean: '蛇類扭動貌 (擬態詞)', query: 'にょろにょろ' },
+        { type: '拗音', kana: 'ひゃ', rubyHtml: '<ruby>百<rt class="first-rt">ひゃく</rt></ruby>', accent: '<span class="overline">ひゃ</span>く', num: '(②)', pos: '[名詞]', mean: '百', query: 'ひゃく' },
+        { type: '拗音', kana: 'ひゅ', rubyHtml: 'ヒューズ', accent: '<span class="overline">ひゅ</span>ーず', num: '(①)', pos: '[名詞]', mean: '保險絲', query: 'ヒューズ' },
+        { type: '拗音', kana: 'ひょ', rubyHtml: '<ruby>評<rt class="first-rt">ひょう</rt>判<rt class="normal-rt">ばん</rt></ruby>', accent: '<span class="overline">ひょ</span>うばん', num: '(⓪)', pos: '[名詞, 形容動詞]', mean: '評價/名聲', query: 'ひょうばん' },
+        { type: '拗音', kana: 'みゃ', rubyHtml: '<ruby>脈<rt class="first-rt">みゃく</rt></ruby>', accent: '<span class="overline">み</span>ゃく', num: '(⓪)', pos: '[名詞]', mean: '脈搏', query: 'みゃく' },
+        { type: '拗音', kana: 'みゅ', rubyHtml: 'ミュージック', accent: '<span class="overline">みゅ</span>ーじっく', num: '(①)', pos: '[名詞]', mean: '音樂', query: 'ミュージック' },
+        { type: '拗音', kana: 'みょ', rubyHtml: '<ruby>名<rt class="first-rt">みょう</rt>字<rt class="normal-rt">じ</rt></ruby>', accent: '<span class="overline">みょ</span>うじ', num: '(①)', pos: '[名詞]', mean: '姓氏', query: 'みょうじ' },
+        { type: '拗音', kana: 'りゃ', rubyHtml: '<ruby>略<rt class="first-rt">りゃく</rt>す<rt class="normal-rt">す</rt></ruby>', accent: '<span class="overline">りゃ</span>くす', num: '(②)', pos: '[動詞]', mean: '省略', query: 'りゃくす' },
+        { type: '拗音', kana: 'りゅ', rubyHtml: '<ruby>留<rt class="first-rt">りゅう</rt>学<rt class="normal-rt">がく</rt></ruby>', accent: '<span class="overline">りゅ</span>う加く', num: '(⓪)', pos: '[名詞, 動詞]', mean: '留學', query: 'りゅう加く' },
+        { type: '拗音', kana: 'りょ', rubyHtml: '<ruby>旅<rt class="first-rt">りょ</rt>行<rt class="normal-rt">こう</rt></ruby>', accent: '<span class="overline">りょ</span>こう', num: '(⓪)', pos: '[名詞, 動詞]', mean: '旅遊', query: 'りょこう' },
 
-        <!-- 單字卡 4 -->
-        <div class="card">
-            <div class="type">頭高型 [1]</div>
-            <button class="audio-btn" onclick="playAudio('ご飯（ごはん）')">
-                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
-            <div class="word">ご飯</div>
-            <div class="kana">ごはん</div>
-            <div class="mean">飯、餐點</div>
-        </div>
+        { type: '拗音', kana: 'ぎゃ', rubyHtml: 'ギャグ', accent: '<span class="overline">ぎゃ</span>ぐ', num: '(①)', pos: '[名詞]', mean: '哏/笑話', query: 'ギャグ' },
+        { type: '拗音', kana: 'ぎゅ', rubyHtml: '<ruby>牛<rt class="first-rt">ぎゅう</rt>乳<rt class="normal-rt">にゅう</rt></ruby>', accent: '<span class="overline">ぎゅ</span>うにゅう', num: '(⓪)', pos: '[名詞]', mean: '牛奶', query: 'ぎゅうにゅう' },
+        { type: '拗音', kana: 'ぎょ', rubyHtml: '<ruby>漁<rt class="first-rt">ぎょ</rt>業<rt class="normal-rt">ぎょう</rt></ruby>', accent: '<span class="overline">ぎょ</span>ぎょう', num: '(⓪)', pos: '[名詞]', mean: '漁業', query: 'ぎょぎょう' },
+        { type: '拗音', kana: 'じゃ', rubyHtml: 'じゃがいも', accent: '<span class="overline">じゃ</span>がいも', num: '(⓪)', pos: '[名詞]', mean: '馬鈴薯', query: 'じゃがいも' },
+        { type: '拗音', kana: 'じゅ', rubyHtml: '<ruby>授<rt class="first-rt">じゅ</rt>業<rt class="normal-rt">ぎょう</rt></ruby>', accent: '<span class="overline">じゅ</span>ぎょう', num: '(①)', pos: '[名詞, 動詞]', mean: '上課/授課', query: 'じゅぎょう' },
+        { type: '拗音', kana: 'じょ', rubyHtml: '<ruby>女<rt class="first-rt">じょ</rt>子<rt class="normal-rt">し</rt></ruby>', accent: '<span class="overline">じょ</span>し', num: '(①)', pos: '[名詞]', mean: '女子/女生', query: 'じょし' },
+        { type: '拗音', kana: 'びゃ', rubyHtml: '<ruby>三<rt class="first-rt">さん</rt>百<rt class="normal-rt">びゃく</rt></ruby>', accent: 'さん<span class="overline">びゃ</span>く', num: '(③)', pos: '[名詞]', mean: '三百 (音變代表)', query: 'さんびゃく' },
+        { type: '拗音', kana: 'びゅ', rubyHtml: 'ビュー', accent: '<span class="overline">びゅ</span>ー', num: '(①)', pos: '[名詞]', mean: '景觀/視野', query: 'ビュー' },
+        { type: '拗音', kana: 'びょ', rubyHtml: '<ruby>病<rt class="first-rt">びょう</rt>院<rt class="normal-rt">いん</rt></ruby>', accent: '<span class="overline">びょ</span>ういん', num: '(⓪)', pos: '[名詞]', mean: '醫院', query: 'びょういん' },
 
-        <!-- 單字卡 5 -->
-        <div class="card">
-            <div class="type">頭高型 [1]</div>
-            <button class="audio-btn" onclick="playAudio('玄関（げんかん）')">
-                <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
-            <div class="word">玄関</div>
-            <div class="kana">げんかん</div>
-            <div class="mean">玄關、門口</div>
-        </div>
-    </div>
+        { type: '拗音', kana: 'ぴゃ', rubyHtml: '<ruby>六<rt class="first-rt">ろっ</rt>百<rt class="normal-rt">ぴゃく</rt></ruby>', accent: 'ろっ<span class="overline">ぴゃ</span>く', num: '(③)', pos: '[名詞]', mean: '六百 (音變代表)', query: 'ろっぴゃく' },
+        { type: '拗音', kana: 'ぴゅ', rubyHtml: 'ピュア', accent: '<span class="overline">ぴゅ</span>あ', num: '(①)', pos: '[形容動詞]', mean: '純潔的/純淨的', query: 'ピュア' },
+        { type: '拗音', kana: 'ぴょ', rubyHtml: 'ぴょんぴょん', accent: '<span class="overline">ぴょ</span>んぴょん', num: '(①)', pos: '[副詞]', mean: '兔子跳躍貌 (擬態詞)', query: 'ぴょんぴょん' }
+    ];
 
-    <script>
-        // 初始化發音引擎，預先加載語音清單
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.getVoices();
-        }
+    function playAudio(text) {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(text)}`;
+        const audio = new Audio(url);
+        audio.play().catch(e => console.log(e));
+    }
 
-        function playAudio(text) {
-            if (!('speechSynthesis' in window)) {
-                alert("抱歉，您的瀏覽器不支援系統發音功能。");
-                return;
-            }
-
-            // 停止當前正在播放的其他聲音
-            window.speechSynthesis.cancel();
-
-            // 建立語音請求，擷取假名部分發音更準確
-            const cleanedText = text.includes('（') ? text.split('（')[1].replace('）', '') : text;
-            const utterance = new SpeechSynthesisUtterance(cleanedText);
-            
-            // 強制設定為日文發音
-            utterance.lang = 'ja-JP'; 
-            utterance.rate = 0.9; // 稍微放慢一點點方便學習
-
-            // 尋找系統內建的最佳日語真人語音包
-            const voices = window.speechSynthesis.getVoices();
-            const jaVoice = voices.find(v => v.lang === 'ja-JP' || v.lang.startsWith('ja'));
-            if (jaVoice) {
-                utterance.voice = jaVoice;
-            }
-
-            // 執行播放
-            window.speechSynthesis.speak(utterance);
-        }
-    </script>
+    const tableBody = document.getElementById('table-body');
+    data.forEach((item, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="color: #7f8c8d; font-weight: bold;">${index + 1}</td>
+            <td>${item.type}</td>
+            <td style="font-size: 18px; font-weight: bold;">${item.kana}</td>
+            <td>${item.rubyHtml}</td>
+            <td style="font-size: 18px; letter-spacing: 1px;">${item.accent}<span class="accent-num">${item.num}</span></td>
+            <td class="pos-badge">${item.pos}</td>
+            <td class="mean-text">${item.mean}</td>
+            <td><button class="btn-play" onclick="playAudio('${item.query}')">播放發音 🔊</button></td>
+        `;
+        tableBody.appendChild(tr);
+    });
+</script>
 </body>
 </html>
