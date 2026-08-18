@@ -182,10 +182,18 @@
         { type: '拗音', kana: 'ぴょ', rubyHtml: 'ぴょんぴょん', accent: '<span class="overline">ぴょ</span>んぴょん', num: '(①)', pos: '[副詞]', mean: '兔子跳躍貌 (擬態詞)', query: 'ぴょんぴょん' }
     ];
 
+    //google發音
     function playAudio(text) {
         const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(text)}`;
         const audio = new Audio(url);
         audio.play().catch(e => console.log(e));
+    }
+    
+    function playAudioM(text) {
+        // 改用微軟日文標準語音介面，在 GitHub Pages 上完全不受網域與 CORS 的阻擋限制
+        const url = `https://microsofttranslator.com{encodeURIComponent(text)}`;
+        const audio = new Audio(url);
+        audio.play();
     }
 
     const tableBody = document.getElementById('table-body');
