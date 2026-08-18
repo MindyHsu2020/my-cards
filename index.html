@@ -103,13 +103,13 @@
         <thead>
             <tr>
                 <th>序號</th>
-                <th>發音類型</th>
-                <th>開頭假名</th>
-                <th>日文單字範例</th>
-                <th>重音標記</th>
+                <th>類型</th>
+                <th>假名</th>
+                <th>日文單字</th>
+                <th>重音</th>
                 <th>詞性</th>
-                <th>中文意思</th>
-                <th>即時發音</th>
+                <th>中文</th>
+                <th>發音</th>
             </tr>
         </thead>
         <tbody id="table-body"></tbody>
@@ -207,7 +207,7 @@
             <td style="font-size: 18px; letter-spacing: 1px;">${item.accent}<span class="accent-num">${item.num}</span></td>
             <td class="pos-badge">${item.pos}</td>
             <td class="mean-text">${item.mean}</td>
-            <td><button class="btn-play" onclick="playAudio('${item.query}')">播放發音 🔊</button></td>
+            <td><button class="btn-play" onclick="playAudio('${item.query}')">🔊</button></td>
         `;
         tableBody.appendChild(tr);
     });
