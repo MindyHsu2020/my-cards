@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日文單字記憶與拼寫測驗系統</title>
+  <!-- 引入 SheetJS 解析與匯出 Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --accent: #e74c3c;
+      --success: #2ecc71;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #2c3e50;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 12px;
+      font-size: 22px;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .view-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .view-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .panel {
+      background: white;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 15px;
+      width: 100%;
+      max-width: 650px;
+      box-sizing: border-box;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      align-items: center;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 13px;
+      color: #475569;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    select, input[type="file"], input[type="text"], button {
+      padding: 9px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background: #f1f5f9;
+      font-weight: bold;
+      color: var(--primary);
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #e2e8f0;
+      border-color: var(--primary);
+    }
+
+    .btn-export {
+      background-color: #fef3c7;
+      color: #92400e;
+      border-color: #fde68a;
+    }
+
+    .btn-audio {
+      background-color: var(--success);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .btn-audio:hover {
+      background-color: #27ae60;
+    }
+
+    .btn-combo-audio {
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 6px;
+    }
+
+    .btn-combo-audio:hover {
+      background-color: #2563eb;
+    }
+
+    .card-container {
+      width: 320px;
+      height: 330px;
+      perspective: 1000px;
+      margin: 10px 0 15px 0;
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      border-radius: 16px;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      border-radius: 16px;
+      background-color: var(--card-bg);
+      padding: 20px;
+      box-sizing: border-box;
+      border: 2px solid #e2e8f0;
+    }
+
+    .card-back {
+      transform: rotateY(180deg);
+      background-color: #f8fafc;
+    }
+
+    .card-header {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pos-badge {
+      font-size: 12px;
+      background: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 6px;
+      color: #475569;
+    }
+
+    .accent-num {
+      color: var(--accent);
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .star-icon {
+      font-size: 24px;
+      color: #cbd5e1;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .star-icon.starred {
+      color: #f59e0b;
+    }
+
+    .front-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .test-input-container {
+      margin-top: 12px;
+      width: 85%;
+      display: none;
+    }
+
+    .test-input-container input {
+      text-align: center;
+      font-size: 16px;
+      padding: 8px;
+      border: 2px solid #3b82f6;
+    }
+
+    .result-badge {
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      display: none;
+    }
+
+    .result-correct {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #34d399;
+    }
+
+    .result-wrong {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #f87171;
+    }
+
+    ruby {
+      font-size: 28px;
+      font-weight: bold;
+      line-height: 1.5;
+    }
+
+    rt {
+      font-size: 14px;
+      color: #3b82f6;
+      font-weight: normal;
+    }
+
+    .meaning-text {
+      font-size: 19px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-top: 6px;
+    }
+
+    .combo-text {
+      font-size: 13px;
+      color: #475569;
+      margin-top: 8px;
+      text-align: center;
+      background: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      max-width: 90%;
+    }
+
+    .nav-controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .progress {
+      font-size: 15px;
+      color: #64748b;
+      font-weight: bold;
+    }
+
+    .table-container {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      display: none;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eef2f5;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎴 日文單字記憶與拼寫測驗系統</h1>
+
+  <div class="view-toggle">
+    <button class="view-btn active" id="btnModeCard" onclick="switchMode('card')">🎴 單字卡模式</button>
+    <button class="view-btn" id="btnModeTable" onclick="switchMode('table')">📋 清單模式</button>
+  </div>
+
+  <div class="panel">
+    <div class="controls-grid">
+      <!-- 1. 上傳 Excel -->
+      <div>
+        <label>1. 上傳 Excel 檔案：</label>
+        <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="importExcel(event)">
+      </div>
+
+      <!-- 2. 選擇課別範圍 -->
+      <div>
+        <label>2. 選擇課別範圍 (A欄)：</label>
+        <select id="lessonSelect" onchange="onFilterChange()">
+          <option value="all">📚 全部課別</option>
+          <option value="unlearned">⭐ 打星號重點複習</option>
+        </select>
+      </div>
+
+      <!-- 3. 正面測試內容設定 -->
+      <div>
+        <label>3. 卡片正面測試內容：</label>
+        <select id="frontDisplayMode" onchange="onDisplayModeChange()">
+          <option value="kana">只顯示假名</option>
+          <option value="kanji">只顯示漢字</option>
+          <option value="meaning">只顯示中文意思 (開啟假名測驗)</option>
+        </select>
+      </div>
+
+      <!-- 4. 翻到背面自動發音開關 -->
+      <div>
+        <label>4. 翻到背面自動發音：</label>
+        <select id="autoPlaySelect">
+          <option value="true">🔊 自動播放日文發音 (預設)</option>
+          <option value="false">🔇 關閉自動發音 (手動播放)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 12px;">
+      <button onclick="shuffleCards()">🔀 隨機打亂當前選取範圍</button>
+      <button class="btn-export" onclick="exportStarredToExcel()">📥 匯出星號單字至 Excel</button>
+    </div>
+  </div>
+
+  <div id="cardViewSection">
+    <div class="card-container" onclick="handleCardClick(event)">
+      <div class="card" id="card">
+        <!-- 正面 -->
+        <div class="card-front">
+          <div class="card-header">
+            <span class="pos-badge" id="cardLessonFront">課別</span>
+            <span class="star-icon star-front" onclick="toggleCurrentStar(event)">★</span>
+          </div>
+          <div class="front-text" id="cardFrontText">請選擇或上傳 Excel</div>
+
+          <div class="test-input-container" id="testInputContainer" onclick="event.stopPropagation()">
+            <input type="text" id="userKanaInput" placeholder="輸入假名後點擊翻面" onkeyup="handleInputKeyup(event)">
+          </div>
+
+          <button style="margin-top: 15px;" onclick="playJapaneseAudio(event)" class="btn-audio">🔊 單字發音</button>
+        </div>
+
+        <!-- 背面 -->
+        <div class="card-back">
+          <div class="card-header">
+            <div>
+              <span class="pos-badge" id="cardPos">[詞性]</span>
+              <span class="accent-num" id="cardAccent">(語調)</span>
+            </div>
+            <span class="star-icon star-back" onclick="toggleCurrentStar(event)">★</span>
+          </div>
+
+          <div class="result-badge" id="resultBadge">比對結果</div>
+
+          <div id="cardWordBack">
+            <ruby>漢字<rt>かんじ</rt></ruby>
+          </div>
+          <div class="meaning-text" id="cardMeaning">中文意思</div>
+
+          <!-- 三合一捆包短句 (含獨立發音按鈕) -->
+          <div class="combo-text" id="cardComboWrapper" style="display:none;">
+            <span id="cardComboText"></span>
+            <button class="btn-combo-audio" onclick="playComboAudio(event)">🔊 唸句子</button>
+          </div>
+
+          <button style="margin-top: 12px;" onclick="playJapaneseAudio(event)" class="btn-audio">🔊 單字發音</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-controls">
+      <button onclick="prevCard()">⬅️ 上一張</button>
+      <span class="progress" id="progressText">0 / 0</span>
+      <button onclick="nextCard()">下一張 ➡️</button>
+    </div>
+  </div>
+
+  <div class="table-container" id="tableViewSection">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">標記</th>
+          <th style="width: 60px;">課數</th>
+          <th>單字 (上假名/下漢字)</th>
+          <th>語調</th>
+          <th>詞性</th>
+          <th>中文意思</th>
+          <th>三合一捆包記憶法</th>
+          <th style="width: 60px; text-align: center;">發音</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let fullVocabularyList = [
+      { id: 1, lesson: "第1課", kana: "わたし", kanji: "私", accent: "0", pos: "代詞", mean: "我", combo: "私がいきます (わたしがいきます)", comboMean: "由我去" },
+      { id: 2, lesson: "第1課", kana: "あなた", kanji: "貴方", accent: "2", pos: "代詞", mean: "你", combo: "あなたにあいます (あなたにあいます)", comboMean: "見到你" }
+    ];
+
+    let currentFilteredList = [];
+    let starredIds = new Set();
+    let currentIndex = 0;
+    let isFlipped = false;
+    let currentMode = 'card';
+
+    function importExcel(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+
+        if (json.length === 0) {
+          alert("Excel 檔案內沒有資料！");
+          return;
+        }
+
+        fullVocabularyList = json.map((row, idx) => {
+          const rawLesson = row['課數'] || row['課別/分類'] || row['課別'] || row['分類'] || row['lesson'] || "預設";
+          const accentVal = row['重音'] !== undefined ? row['重音'] : (row['語調'] !== undefined ? row['語調'] : "0");
+          const rawCombo = row['三合一捆包記憶法'] || row['三合一捆包記憶法 (單字+助詞+動詞)'] || "";
+          const rawComboMean = row['捆包中文意思'] || "";
+
+          return {
+            id: idx + 1,
+            lesson: String(rawLesson).trim(),
+            kana: row['假名'] || row['平假名'] || row['kana'] || "",
+            kanji: row['漢字'] || row['kanji'] || "",
+            accent: String(accentVal),
+            pos: row['詞性(含い/な)'] || row['詞性'] || row['pos'] || "單字",
+            mean: row['中文'] || row['中文意思'] || row['meaning'] || "",
+            combo: rawCombo,
+            comboMean: rawComboMean
+          };
+        });
+
+        starredIds.clear();
+        updateLessonDropdown();
+        onFilterChange();
+        alert(`成功載入 ${fullVocabularyList.length} 筆單字資料！`);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function updateLessonDropdown() {
+      const select = document.getElementById('lessonSelect');
+      const lessons = [...new Set(fullVocabularyList.map(item => item.lesson))];
+
+      select.innerHTML = `
+        <option value="all">📚 全部課別 (${fullVocabularyList.length}字)</option>
+        <option value="unlearned">⭐ 打星號重點複習</option>
+      `;
+
+      lessons.forEach(l => {
+        const count = fullVocabularyList.filter(item => item.lesson === l).length;
+        const opt = document.createElement('option');
+        opt.value = l;
+        opt.innerText = `${l} (${count}字)`;
+        select.appendChild(opt);
+      });
+    }
+
+    function onFilterChange() {
+      const val = document.getElementById('lessonSelect').value;
+      if (val === 'all') {
+        currentFilteredList = [...fullVocabularyList];
+      } else if (val === 'unlearned') {
+        currentFilteredList = fullVocabularyList.filter(item => starredIds.has(item.id));
+      } else {
+        currentFilteredList = fullVocabularyList.filter(item => item.lesson === val);
+      }
+
+      currentIndex = 0;
+      changeCardIndexWithAnimation(() => showCard());
+    }
+
+    function onDisplayModeChange() {
+      changeCardIndexWithAnimation(() => showCard());
+    }
+
+    function showCurrentState() {
+      if (currentMode === 'card') {
+        showCard();
+      } else {
+        renderTable();
+      }
+    }
+
+    function showCard() {
+      if (currentFilteredList.length === 0) {
+        document.getElementById('cardFrontText').innerText = "無單字資料";
+        document.getElementById('cardLessonFront').innerText = "提示";
+        document.getElementById('progressText').innerText = "0 / 0";
+        document.getElementById('testInputContainer').style.display = 'none';
+        document.getElementById('cardComboWrapper').style.display = 'none';
+        return;
+      }
+
+      const item = currentFilteredList[currentIndex];
+      const mode = document.getElementById('frontDisplayMode').value;
+
+      document.getElementById('userKanaInput').value = '';
+      const badge = document.getElementById('resultBadge');
+      badge.style.display = 'none';
+      badge.className = 'result-badge';
+
+      const inputContainer = document.getElementById('testInputContainer');
+      inputContainer.style.display = (mode === 'meaning') ? 'block' : 'none';
+
+      let frontText = "";
+      if (mode === 'kana') frontText = item.kana || item.kanji;
+      else if (mode === 'kanji') frontText = item.kanji || item.kana;
+      else if (mode === 'meaning') frontText = item.mean;
+
+      document.getElementById('cardFrontText').innerText = frontText;
+      document.getElementById('cardLessonFront').innerText = item.lesson;
+
+      if (item.kanji && item.kanji !== item.kana) {
+        document.getElementById('cardWordBack').innerHTML = `<ruby>${item.kanji}<rt>${item.kana}</rt></ruby>`;
+      } else {
+        document.getElementById('cardWordBack').innerHTML = `<ruby>${item.kana}</ruby>`;
+      }
+
+      document.getElementById('cardPos').innerText = `[${item.pos}]`;
+      document.getElementById('cardAccent').innerText = `(${item.accent})`;
+      document.getElementById('cardMeaning').innerText = item.mean;
+
+      // 渲染三合一短句與發音區塊
+      const comboWrapper = document.getElementById('cardComboWrapper');
+      if (item.combo && item.combo.trim() !== '') {
+        const displayText = item.comboMean ? `💡 ${item.combo} (${item.comboMean})` : `💡 ${item.combo}`;
+        document.getElementById('cardComboText').innerText = displayText;
+        comboWrapper.style.display = 'flex';
+      } else {
+        comboWrapper.style.display = 'none';
+      }
+
+      document.getElementById('progressText').innerText = `${currentIndex + 1} / ${currentFilteredList.length}`;
+
+      const isStarred = starredIds.has(item.id);
+      document.querySelectorAll('.star-front, .star-back').forEach(el => {
+        el.classList.toggle('starred', isStarred);
+      });
+    }
+
+    function changeCardIndexWithAnimation(updateCallback) {
+      const cardEl = document.getElementById('card');
+      if (isFlipped) {
+        isFlipped = false;
+        cardEl.classList.remove('flipped');
+        setTimeout(() => {
+          updateCallback();
+        }, 250);
+      } else {
+        updateCallback();
+      }
+    }
+
+    function handleCardClick(e) {
+      if (!isFlipped) {
+        const mode = document.getElementById('frontDisplayMode').value;
+        if (mode === 'meaning' && currentFilteredList.length > 0) {
+          const userVal = document.getElementById('userKanaInput').value.trim();
+          const targetKana = currentFilteredList[currentIndex].kana.trim();
+          const badge = document.getElementById('resultBadge');
+
+          if (userVal !== '') {
+            badge.style.display = 'block';
+            if (userVal === targetKana) {
+              badge.innerText = '答案正確！🎉';
+              badge.className = 'result-badge result-correct';
+            } else {
+              badge.innerText = `答案不符 ❌ (您的輸入：${userVal})`;
+              badge.className = 'result-badge result-wrong';
+            }
+          }
+        }
+      }
+      flipCard();
+    }
+
+    function flipCard() {
+      isFlipped = !isFlipped;
+      document.getElementById('card').classList.toggle('flipped');
+
+      if (isFlipped) {
+        const isAutoPlay = document.getElementById('autoPlaySelect').value === 'true';
+        if (isAutoPlay) {
+          playJapaneseAudio();
+        }
+      }
+    }
+
+    function handleInputKeyup(e) {
+      if (e.key === 'Enter') {
+        handleCardClick(e);
+      }
+    }
+
+    function nextCard() {
+      if (currentIndex < currentFilteredList.length - 1) {
+        changeCardIndexWithAnimation(() => {
+          currentIndex++;
+          showCard();
+        });
+      }
+    }
+
+    function prevCard() {
+      if (currentIndex > 0) {
+        changeCardIndexWithAnimation(() => {
+          currentIndex--;
+          showCard();
+        });
+      }
+    }
+
+    function shuffleCards() {
+      if (currentFilteredList.length <= 1) return;
+
+      changeCardIndexWithAnimation(() => {
+        for (let i = currentFilteredList.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [currentFilteredList[i], currentFilteredList[j]] = [currentFilteredList[j], currentFilteredList[i]];
+        }
+        currentIndex = 0;
+        showCard();
+      });
+    }
+
+    // 發音：播放單字音訊
+    function playJapaneseAudio(e) {
+      if (e) e.stopPropagation();
+      if (currentFilteredList.length === 0) return;
+      const item = currentFilteredList[currentIndex];
+      const audioText = item.kana || item.kanji;
+      speakText(audioText);
+    }
+
+    // 發音：播放三合一短句音訊
+    function playComboAudio(e) {
+      if (e) e.stopPropagation();
+      if (currentFilteredList.length === 0) return;
+      const item = currentFilteredList[currentIndex];
+      let comboStr = item.combo;
+
+      // 如果包含括號平假名，優先擷取括號內的平假名以確保極致精準發音
+      const match = comboStr.match(/\((.*?)\)/);
+      if (match && match[1]) {
+        comboStr = match[1];
+      }
+      speakText(comboStr);
+    }
+
+    // 通用雙引擎發音播放器
+    function speakText(text) {
+      if (!text) return;
+      const cleanText = text.trim();
+      const ttsUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
+      const audio = new Audio(ttsUrl);
+
+      audio.play().catch(err => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.lang = 'ja-JP';
+          utterance.rate = 0.85;
+
+          const voices = window.speechSynthesis.getVoices();
+          const jaVoice = voices.find(v => v.lang.includes('ja') || v.lang.includes('JP'));
+          if (jaVoice) utterance.voice = jaVoice;
+
+          window.speechSynthesis.speak(utterance);
+        }
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      currentFilteredList.forEach((item) => {
+        const isStarred = starredIds.has(item.id);
+        const comboDisplay = item.comboMean ? `${item.combo} (${item.comboMean})` : item.combo;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="text-align: center;"><span class="star-icon ${isStarred ? 'starred' : ''}" onclick="toggleStar('${item.id}')">★</span></td>
+          <td style="color: #64748b; font-weight: bold;">${item.lesson}</td>
+          <td style="font-size: 16px;"><ruby>${item.kanji || item.kana}<rt>${item.kanji ? item.kana : ''}</rt></ruby></td>
+          <td style="color: #e74c3c; font-weight: bold;">(${item.accent})</td>
+          <td style="color: #7f8c8d;">[${item.pos}]</td>
+          <td style="font-weight: bold;">${item.mean}</td>
+          <td style="color: #475569; font-size: 13px;">${comboDisplay}</td>
+          <td style="text-align: center;"><button class="btn-audio" onclick="playJapaneseAudio(event)">🔊</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function toggleStar(id) {
+      id = Number(id);
+      if (starredIds.has(id)) starredIds.delete(id);
+      else starredIds.add(id);
+
+      if (document.getElementById('lessonSelect').value === 'unlearned') {
+        currentFilteredList = fullVocabularyList.filter(item => starredIds.has(item.id));
+      }
+      showCurrentState();
+    }
+
+    function toggleCurrentStar(e) {
+      e.stopPropagation();
+      if (currentFilteredList.length === 0) return;
+      toggleStar(currentFilteredList[currentIndex].id);
+    }
+
+    function exportStarredToExcel() {
+      const starredList = fullVocabularyList.filter(item => starredIds.has(item.id));
+      if (starredList.length === 0) {
+        alert("目前還沒有標記星號的單字喔！請點擊 ★ 標記不熟單字。");
+        return;
+      }
+
+      const exportData = starredList.map((item, idx) => ({
+        "課數": item.lesson,
+        "序號": idx + 1,
+        "假名": item.kana,
+        "漢字": item.kanji,
+        "重音": item.accent,
+        "中文": item.mean,
+        "詞性(含い/na)": item.pos,
+        "三合一捆包記憶法": item.combo,
+        "捆包中文意思": item.comboMean
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "重點複習單字");
+      XLSX.writeFile(workbook, "日文重點複習單字卡.xlsx");
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+      document.getElementById('btnModeCard').classList.toggle('active', mode === 'card');
+      document.getElementById('btnModeTable').classList.toggle('active', mode === 'table');
+      document.getElementById('cardViewSection').style.display = mode === 'card' ? 'block' : 'none';
+      document.getElementById('tableViewSection').style.display = mode === 'table' ? 'block' : 'none';
+      changeCardIndexWithAnimation(() => showCurrentState());
+    }
+
+    // 預先載入語音
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    updateLessonDropdown();
+    onFilterChange();
+  </script>
+</body>
+</html>
