@@ -1,0 +1,19 @@
+function playGoogleTTS(text, lang = 'zh-TW') {
+  if (!text) return;
+
+  // 對文字進行 URL 編碼
+  const encodedText = encodeURIComponent(text);
+  
+  // Google TTS 隱藏 Endpoint（使用 client=tw-ob 參數）
+  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${lang}&client=tw-ob`;
+
+  // 建立 Audio 物件並播放
+  const audio = new Audio(ttsUrl);
+  
+  audio.play().catch(error => {
+    console.error("播放失敗或被瀏覽器自動播放政策阻擋:", error);
+  });
+}
+
+// 使用方式：傳入字串即可即時播放
+playGoogleTTS("你好，這是 Google 翻譯的語音", "zh-TW");
