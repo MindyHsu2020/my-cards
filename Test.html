@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google TTS 日語發音測試</title>
+  <title>網頁語音朗讀測試 (GitHub Pages 適用)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -56,17 +56,17 @@
 <body>
 
   <div class="card">
-    <h2>🔊 Google TTS 即時語音測試</h2>
+    <h2>🔊 瀏覽器原生語音測試 (GitHub Pages 適用)</h2>
     
     <label for="textInput">請輸入要朗讀的文字：</label>
-    <textarea id="textInput" placeholder="請輸入文字...">こんにちは、初めまして！どうぞよろしくお願いします。</textarea>
+    <textarea id="textInput">こんにちは、GitHub Pagesへようこそ！日本語の音声テストです。</textarea>
 
     <div class="controls">
       <label for="langSelect">選擇語言：</label>
       <select id="langSelect">
-        <option value="ja" selected>日文 (Japanese - ja)</option>
+        <option value="ja-JP" selected>日文 (Japanese - ja-JP)</option>
         <option value="zh-TW">繁體中文 (zh-TW)</option>
-        <option value="en">英文 (English - en)</option>
+        <option value="en-US">英文 (en-US)</option>
       </select>
 
       <button id="playBtn">播放發音</button>
@@ -76,44 +76,44 @@
   </div>
 
   <script>
-    function playGoogleTTS(text, lang = 'ja') {
+    document.getElementById('playBtn').addEventListener('click', () => {
+      const text = document.getElementById('textInput').value.trim();
+      const lang = document.getElementById('langSelect').value;
+      const statusEl = document.getElementById('status');
+
       if (!text) {
         alert('請輸入要朗讀的文字！');
         return;
       }
 
-      const statusEl = document.getElementById('status');
-      statusEl.textContent = '語音載入中...';
+      // 檢查瀏覽器是否支援 Web Speech API
+      if (!('speechSynthesis' in window)) {
+        alert('您的瀏覽器不支援語音合成功能');
+        statusEl.textContent = '❌ 瀏覽器不支援';
+        return;
+      }
 
-      // 1. 對文字進行 URL 編碼
-      const encodedText = encodeURIComponent(text);
-      
-      // 2. 使用 Google TTS endpoint（使用 client=tw-ob 參數）
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${lang}&client=tw-ob`;
+      // 停止先前正在播放的語音
+      window.speechSynthesis.cancel();
 
-      // 3. 建立 Audio 物件並播放
-      const audio = new Audio(ttsUrl);
-      
-      audio.play()
-        .then(() => {
-          statusEl.textContent = '🔊 正在播放...';
-        })
-        .catch(error => {
-          console.error("播放失敗:", error);
-          statusEl.textContent = '❌ 播放失敗（可能受到瀏覽器 Autoplay 政策或 CORS 限制）';
-        });
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang; // 設定為日文 'ja-JP'
 
-      // 播放結束時更新狀態
-      audio.onended = () => {
+      utterance.onstart = () => {
+        statusEl.textContent = '🔊 正在播放...';
+      };
+
+      utterance.onend = () => {
         statusEl.textContent = '✅ 播放完成';
       };
-    }
 
-    // 綁定按鈕點擊事件
-    document.getElementById('playBtn').addEventListener('click', () => {
-      const text = document.getElementById('textInput').value.trim();
-      const lang = document.getElementById('langSelect').value;
-      playGoogleTTS(text, lang);
+      utterance.onerror = (event) => {
+        console.error("語音播放錯誤:", event);
+        statusEl.textContent = '❌ 播放失敗';
+      };
+
+      // 執行發音
+      window.speechSynthesis.speak(utterance);
     });
   </script>
 
