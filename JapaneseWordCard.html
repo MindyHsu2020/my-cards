@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日文單字記憶與拼寫測驗系統 (智慧環境切換版)</title>
+  <title>日文單字記憶與拼寫測驗系統 (智慧記憶版)</title>
   <!-- 引入 SheetJS 解析與匯出 Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -366,7 +366,7 @@
 
   <div class="panel">
     <div class="controls-grid">
-      <!-- 1. 上傳 Excel (支援自動讀取，可手動覆蓋) -->
+      <!-- 1. 上傳 Excel -->
       <div>
         <label>1. Excel 資料來源：</label>
         <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" onchange="importExcel(event)">
@@ -489,10 +489,9 @@
     let isFlipped = false;
     let currentMode = 'card';
 
-    // 判斷當前執行環境 (本機 file:// 或是 GitHub Pages)
-    const isLocalEnvironment = window.location.protocol === 'file:';
+    // 嚴格精準環境偵測 (本機 file:// 或 localhost 視為 Local 模式；github.io 視為 GitHub 模式)
+    const isLocalEnvironment = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
-    // 初始化環境顯示徽章
     window.addEventListener('DOMContentLoaded', () => {
       const badge = document.getElementById('envBadge');
       if (isLocalEnvironment) {
@@ -505,37 +504,49 @@
         badge.style.color = "#1e40af";
       }
 
-      // 自動讀取同目錄下的 Japanese_word.xlsx
-      autoLoadDefaultExcel();
+      // 初始化載入策略：1. 先檢查瀏覽器快取是否有存過 2. 若無則嘗試 fetch 讀取 Japanese_word.xlsx
+      loadInitialData();
     });
 
-    // 自動加載預設 Excel 檔案
-    function autoLoadDefaultExcel() {
-      const defaultFilename = 'Japanese_word.xlsx';
-      fetch(defaultFilename)
+    function loadInitialData() {
+      const cachedData = localStorage.getItem('japanese_vocabulary_cache');
+      if (cachedData) {
+        try {
+          fullVocabularyList = JSON.parse(cachedData);
+          updateLessonDropdown();
+          onFilterChange();
+          console.log("成功從瀏覽器本機記憶載入單字資料（共", fullVocabularyList.length, "筆）");
+          return;
+        } catch(e) {
+          console.warn("快取解析失敗，重新載入", e);
+        }
+      }
+
+      // 若快取沒有，嘗試自動讀取同目錄下的 Japanese_word.xlsx
+      fetch('Japanese_word.xlsx')
         .then(response => {
-          if (!response.ok) throw new Error("找不到預設檔案");
+          if (!response.ok) throw new Error("找不到檔案");
           return response.arrayBuffer();
         })
         .then(buffer => {
           const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-          processWorkbook(workbook);
-          console.log("成功自動載入預設檔案：", defaultFilename);
+          processWorkbook(workbook, false);
+          console.log("成功自動載入 Japanese_word.xlsx");
         })
         .catch(err => {
-          console.log("未自動偵測到 Japanese_word.xlsx，請使用手動上傳：", err);
-          // 若無自動讀取到，維持預設範例並提示
+          console.log("無法自動 fetch（可能因瀏覽器 file:// 安全限制），使用預設範例或請手動上傳一次。");
+          updateLessonDropdown();
+          onFilterChange();
         });
     }
 
-    // 處理 Excel 匯入共用邏輯
-    function processWorkbook(workbook) {
+    function processWorkbook(workbook, showAlert = true) {
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
       const json = XLSX.utils.sheet_to_json(worksheet);
 
       if (json.length === 0) {
-        alert("Excel 檔案內沒有資料！");
+        if (showAlert) alert("Excel 檔案內沒有資料！");
         return;
       }
 
@@ -558,9 +569,19 @@
         };
       });
 
+      // 永久儲存至瀏覽器快取，以後重整再也不會消失
+      try {
+        localStorage.setItem('japanese_vocabulary_cache', JSON.stringify(fullVocabularyList));
+      } catch(e) {
+        console.warn("無法寫入 localStorage", e);
+      }
+
       starredIds.clear();
       updateLessonDropdown();
       onFilterChange();
+      if (showAlert) {
+        alert(`成功載入 ${fullVocabularyList.length} 筆單字資料！並已自動記憶，下次重整不會遺失。`);
+      }
     }
 
     function importExcel(e) {
@@ -571,8 +592,7 @@
       reader.onload = function(evt) {
         const data = new Uint8Array(evt.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        processWorkbook(workbook);
-        alert(`成功載入 ${fullVocabularyList.length} 筆單字資料！`);
+        processWorkbook(workbook, true);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -660,7 +680,6 @@
       document.getElementById('cardAccent').innerText = `(${item.accent})`;
       document.getElementById('cardMeaning').innerText = item.mean;
 
-      // 渲染三合一短句與發音區塊
       const comboWrapper = document.getElementById('cardComboWrapper');
       if (item.combo && item.combo.trim() !== '') {
         const displayText = item.comboMean ? `💡 ${item.combo} (${item.comboMean})` : `💡 ${item.combo}`;
@@ -800,7 +819,6 @@
       }
     }
 
-    // A方案：本機端原生 Web Speech API
     function speakNativeTTS(text) {
       if (!('speechSynthesis' in window)) {
         alert('您的瀏覽器不支援語音合成功能');
@@ -813,7 +831,6 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    // B方案：線上 Google Translate TTS
     function speakGoogleTTS(text) {
       const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=${encodeURIComponent(text)}`;
       const audio = new Audio(ttsUrl);
