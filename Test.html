@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>網頁語音朗讀測試 (GitHub Pages 適用)</title>
+  <title>日語語音朗讀測試</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -56,15 +56,15 @@
 <body>
 
   <div class="card">
-    <h2>🔊 瀏覽器原生語音測試 (GitHub Pages 適用)</h2>
+    <h2>🔊 日語語音朗讀測試 (GitHub Pages)</h2>
     
     <label for="textInput">請輸入要朗讀的文字：</label>
-    <textarea id="textInput">こんにちは、GitHub Pagesへようこそ！日本語の音声テストです。</textarea>
+    <textarea id="textInput">こんにちは、日本語の音声テストです。</textarea>
 
     <div class="controls">
       <label for="langSelect">選擇語言：</label>
       <select id="langSelect">
-        <option value="ja-JP" selected>日文 (Japanese - ja-JP)</option>
+        <option value="ja-JP" selected>日文 (ja-JP)</option>
         <option value="zh-TW">繁體中文 (zh-TW)</option>
         <option value="en-US">英文 (en-US)</option>
       </select>
@@ -86,10 +86,9 @@
         return;
       }
 
-      // 檢查瀏覽器是否支援 Web Speech API
+      // 檢查瀏覽器是否支援
       if (!('speechSynthesis' in window)) {
-        alert('您的瀏覽器不支援語音合成功能');
-        statusEl.textContent = '❌ 瀏覽器不支援';
+        statusEl.textContent = '❌ 您的瀏覽器不支援語音合成功能';
         return;
       }
 
@@ -97,7 +96,7 @@
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang; // 設定為日文 'ja-JP'
+      utterance.lang = lang; 
 
       utterance.onstart = () => {
         statusEl.textContent = '🔊 正在播放...';
@@ -109,7 +108,7 @@
 
       utterance.onerror = (event) => {
         console.error("語音播放錯誤:", event);
-        statusEl.textContent = '❌ 播放失敗';
+        statusEl.textContent = '❌ 播放失敗，請檢查瀏覽器權限';
       };
 
       // 執行發音
