@@ -1,19 +1,121 @@
-function playGoogleTTS(text, lang = 'zh-TW') {
-  if (!text) return;
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google TTS 日語發音測試</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.6;
+    }
+    .card {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 80px;
+      margin: 10px 0;
+      padding: 8px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    select, button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
 
-  // 對文字進行 URL 編碼
-  const encodedText = encodeURIComponent(text);
-  
-  // Google TTS 隱藏 Endpoint（使用 client=tw-ob 參數）
-  const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${lang}&client=tw-ob`;
+  <div class="card">
+    <h2>🔊 Google TTS 即時語音測試</h2>
+    
+    <label for="textInput">請輸入要朗讀的文字：</label>
+    <textarea id="textInput" placeholder="請輸入文字...">こんにちは、初めまして！どうぞよろしくお願いします。</textarea>
 
-  // 建立 Audio 物件並播放
-  const audio = new Audio(ttsUrl);
-  
-  audio.play().catch(error => {
-    console.error("播放失敗或被瀏覽器自動播放政策阻擋:", error);
-  });
-}
+    <div class="controls">
+      <label for="langSelect">選擇語言：</label>
+      <select id="langSelect">
+        <option value="ja" selected>日文 (Japanese - ja)</option>
+        <option value="zh-TW">繁體中文 (zh-TW)</option>
+        <option value="en">英文 (English - en)</option>
+      </select>
 
-// 使用方式：傳入字串即可即時播放
-playGoogleTTS("你好，這是 Google 翻譯的語音", "zh-TW");
+      <button id="playBtn">播放發音</button>
+    </div>
+
+    <div id="status">準備就緒</div>
+  </div>
+
+  <script>
+    function playGoogleTTS(text, lang = 'ja') {
+      if (!text) {
+        alert('請輸入要朗讀的文字！');
+        return;
+      }
+
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = '語音載入中...';
+
+      // 1. 對文字進行 URL 編碼
+      const encodedText = encodeURIComponent(text);
+      
+      // 2. 使用 Google TTS endpoint（使用 client=tw-ob 參數）
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=${lang}&client=tw-ob`;
+
+      // 3. 建立 Audio 物件並播放
+      const audio = new Audio(ttsUrl);
+      
+      audio.play()
+        .then(() => {
+          statusEl.textContent = '🔊 正在播放...';
+        })
+        .catch(error => {
+          console.error("播放失敗:", error);
+          statusEl.textContent = '❌ 播放失敗（可能受到瀏覽器 Autoplay 政策或 CORS 限制）';
+        });
+
+      // 播放結束時更新狀態
+      audio.onended = () => {
+        statusEl.textContent = '✅ 播放完成';
+      };
+    }
+
+    // 綁定按鈕點擊事件
+    document.getElementById('playBtn').addEventListener('click', () => {
+      const text = document.getElementById('textInput').value.trim();
+      const lang = document.getElementById('langSelect').value;
+      playGoogleTTS(text, lang);
+    });
+  </script>
+
+</body>
+</html>
