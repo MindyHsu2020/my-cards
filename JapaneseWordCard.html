@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日文單字記憶與拼寫測驗系統 (智慧記憶版)</title>
+  <title>日文單字記憶與拼寫測驗系統 (雙語音引擎自由切換版)</title>
   <!-- 引入 SheetJS 解析與匯出 Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -32,19 +32,8 @@
     h1 {
       text-align: center;
       color: var(--primary);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       font-size: 22px;
-    }
-
-    .env-badge {
-      text-align: center;
-      font-size: 12px;
-      color: #64748b;
-      margin-bottom: 12px;
-      background: #e2e8f0;
-      padding: 3px 10px;
-      border-radius: 12px;
-      display: inline-block;
     }
 
     .view-toggle {
@@ -355,9 +344,6 @@
 <body>
 
   <h1>🎴 日文單字記憶與拼寫測驗系統</h1>
-  <div style="text-align: center;">
-    <span class="env-badge" id="envBadge">正在偵測執行環境...</span>
-  </div>
 
   <div class="view-toggle">
     <button class="view-btn active" id="btnModeCard" onclick="switchMode('card')">🎴 單字卡模式</button>
@@ -391,9 +377,18 @@
         </select>
       </div>
 
-      <!-- 4. 翻到背面自動發音開關 -->
+      <!-- 4. 語音引擎選擇 (可自由切換 Local 模式或 GitHub 模式) -->
       <div>
-        <label>4. 翻到背面自動發音：</label>
+        <label>4. 語音引擎模式：</label>
+        <select id="ttsEngineSelect">
+          <option value="local">💻 LocalCard 模式 (原生 Web Speech，支援耳機)</option>
+          <option value="github">🌐 GitHubCard 模式 (Google TTS，支援 iPhone)</option>
+        </select>
+      </div>
+
+      <!-- 5. 翻到背面自動發音開關 -->
+      <div>
+        <label>5. 翻到背面自動發音：</label>
         <select id="autoPlaySelect">
           <option value="true">🔊 自動播放日文發音 (預設)</option>
           <option value="false">🔇 關閉自動發音 (手動播放)</option>
@@ -489,22 +484,17 @@
     let isFlipped = false;
     let currentMode = 'card';
 
-    // 嚴格精準環境偵測 (本機 file:// 或 localhost 視為 Local 模式；github.io 視為 GitHub 模式)
-    const isLocalEnvironment = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
+    // 啟動時自動設定預設語音引擎（本機預設選 local，GitHub 預設選 github）
     window.addEventListener('DOMContentLoaded', () => {
-      const badge = document.getElementById('envBadge');
-      if (isLocalEnvironment) {
-        badge.innerText = "💻 執行模式：本機 (Local) ｜ 語音引擎：Web Speech API (支援耳機)";
-        badge.style.background = "#d1fae5";
-        badge.style.color = "#065f46";
+      const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const engineSelect = document.getElementById('ttsEngineSelect');
+      if (isLocal) {
+        engineSelect.value = 'local';
       } else {
-        badge.innerText = "🌐 執行模式：GitHub Pages ｜ 語音引擎：Google Translate TTS";
-        badge.style.background = "#dbeafe";
-        badge.style.color = "#1e40af";
+        engineSelect.value = 'github';
       }
 
-      // 初始化載入策略：1. 先檢查瀏覽器快取是否有存過 2. 若無則嘗試 fetch 讀取 Japanese_word.xlsx
+      // 載入資料（優先從 localStorage 讀取，免去重複上傳與重整遺失）
       loadInitialData();
     });
 
@@ -515,26 +505,25 @@
           fullVocabularyList = JSON.parse(cachedData);
           updateLessonDropdown();
           onFilterChange();
-          console.log("成功從瀏覽器本機記憶載入單字資料（共", fullVocabularyList.length, "筆）");
+          console.log("從瀏覽器快取成功載入", fullVocabularyList.length, "筆單字");
           return;
         } catch(e) {
-          console.warn("快取解析失敗，重新載入", e);
+          console.warn("快取解析失敗", e);
         }
       }
 
-      // 若快取沒有，嘗試自動讀取同目錄下的 Japanese_word.xlsx
+      // 若快取無資料，嘗試自動讀取同目錄下的 Japanese_word.xlsx
       fetch('Japanese_word.xlsx')
-        .then(response => {
-          if (!response.ok) throw new Error("找不到檔案");
-          return response.arrayBuffer();
+        .then(res => {
+          if (!res.ok) throw new Error("無自動檔案");
+          return res.arrayBuffer();
         })
         .then(buffer => {
           const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
           processWorkbook(workbook, false);
-          console.log("成功自動載入 Japanese_word.xlsx");
         })
         .catch(err => {
-          console.log("無法自動 fetch（可能因瀏覽器 file:// 安全限制），使用預設範例或請手動上傳一次。");
+          console.log("無法自動 fetch，請手動上傳 Excel 一次。");
           updateLessonDropdown();
           onFilterChange();
         });
@@ -569,7 +558,7 @@
         };
       });
 
-      // 永久儲存至瀏覽器快取，以後重整再也不會消失
+      // 永久儲存至 localStorage
       try {
         localStorage.setItem('japanese_vocabulary_cache', JSON.stringify(fullVocabularyList));
       } catch(e) {
@@ -580,7 +569,7 @@
       updateLessonDropdown();
       onFilterChange();
       if (showAlert) {
-        alert(`成功載入 ${fullVocabularyList.length} 筆單字資料！並已自動記憶，下次重整不會遺失。`);
+        alert(`成功載入 ${fullVocabularyList.length} 筆單字！已自動儲存，重整不會遺失。`);
       }
     }
 
@@ -783,14 +772,14 @@
     }
 
     // ==========================================
-    // 智慧語音發音調派中心 (根據環境自動切換)
+    // 語音發音核心：依據選單控制項 (LocalCard vs GitHubCard)
     // ==========================================
     function playJapaneseAudio(e) {
       if (e) e.stopPropagation();
       if (currentFilteredList.length === 0) return;
       const item = currentFilteredList[currentIndex];
       const audioText = item.kana || item.kanji;
-      speakByEnvironment(audioText);
+      speakWithSelectedEngine(audioText);
     }
 
     function playComboAudio(e) {
@@ -803,22 +792,24 @@
       if (match && match[1]) {
         comboStr = match[1];
       }
-      speakByEnvironment(comboStr);
+      speakWithSelectedEngine(comboStr);
     }
 
-    function speakByEnvironment(text) {
+    function speakWithSelectedEngine(text) {
       if (!text) return;
       const cleanText = text.trim();
+      const engine = document.getElementById('ttsEngineSelect').value;
 
-      if (isLocalEnvironment) {
-        // 💻 本機模式：使用 Web Speech API (支援耳機輸出)
+      if (engine === 'local') {
+        // LocalCard 模式 (Web Speech API -> 支援耳機)
         speakNativeTTS(cleanText);
       } else {
-        // 🌐 GitHub Pages 模式：使用 Google Translate TTS
+        // GitHubCard 模式 (Google TTS -> 支援 iPhone)
         speakGoogleTTS(cleanText);
       }
     }
 
+    // LocalCard 模式發音函式
     function speakNativeTTS(text) {
       if (!('speechSynthesis' in window)) {
         alert('您的瀏覽器不支援語音合成功能');
@@ -831,11 +822,12 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    // GitHubCard 模式發音函式
     function speakGoogleTTS(text) {
       const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=${encodeURIComponent(text)}`;
       const audio = new Audio(ttsUrl);
       audio.play().catch(error => {
-        console.warn("Google TTS 播放受限，嘗試降級使用原生發音：", error);
+        console.warn("Google TTS 播放受限，自動改用原生發音：", error);
         speakNativeTTS(text);
       });
     }
@@ -857,7 +849,7 @@
           <td style="color: #7f8c8d;">[${item.pos}]</td>
           <td style="font-weight: bold;">${item.mean}</td>
           <td style="color: #475569; font-size: 13px;">${comboDisplay}</td>
-          <td style="text-align: center;"><button class="btn-audio" onclick="event.stopPropagation(); speakByEnvironment('${audioText}')">🔊</button></td>
+          <td style="text-align: center;"><button class="btn-audio" onclick="event.stopPropagation(); speakWithSelectedEngine('${audioText}')">🔊</button></td>
         `;
         tbody.appendChild(tr);
       });
