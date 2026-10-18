@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日文單字記憶與拼寫測驗系統 (雙語音引擎自由切換版)</title>
+  <title>日文單字記憶與拼寫測驗系統 (發音對調與智慧記憶版)</title>
   <!-- 引入 SheetJS 解析與匯出 Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
@@ -377,12 +377,12 @@
         </select>
       </div>
 
-      <!-- 4. 語音引擎選擇 (可自由切換 Local 模式或 GitHub 模式) -->
+      <!-- 4. 語音引擎選擇 (本機預設 Google TTS，GitHub 預設 Web Speech API) -->
       <div>
         <label>4. 語音引擎模式：</label>
         <select id="ttsEngineSelect">
-          <option value="local">💻 LocalCard 模式 (原生 Web Speech，支援耳機)</option>
-          <option value="github">🌐 GitHubCard 模式 (Google TTS，支援 iPhone)</option>
+          <option value="google">🌐 Google TTS API (適合本機)</option>
+          <option value="web speech">💻 Web Speech API (適合 GitHub/iPhone)</option>
         </select>
       </div>
 
@@ -484,17 +484,16 @@
     let isFlipped = false;
     let currentMode = 'card';
 
-    // 啟動時自動設定預設語音引擎（本機預設選 local，GitHub 預設選 github）
+    // 啟動時自動偵測環境並設定預設發音引擎 (本機選 Google TTS，GitHub 選 Web Speech)
     window.addEventListener('DOMContentLoaded', () => {
       const isLocal = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const engineSelect = document.getElementById('ttsEngineSelect');
       if (isLocal) {
-        engineSelect.value = 'local';
+        engineSelect.value = 'google';
       } else {
-        engineSelect.value = 'github';
+        engineSelect.value = 'web speech';
       }
 
-      // 載入資料（優先從 localStorage 讀取，免去重複上傳與重整遺失）
       loadInitialData();
     });
 
@@ -505,14 +504,12 @@
           fullVocabularyList = JSON.parse(cachedData);
           updateLessonDropdown();
           onFilterChange();
-          console.log("從瀏覽器快取成功載入", fullVocabularyList.length, "筆單字");
           return;
         } catch(e) {
           console.warn("快取解析失敗", e);
         }
       }
 
-      // 若快取無資料，嘗試自動讀取同目錄下的 Japanese_word.xlsx
       fetch('Japanese_word.xlsx')
         .then(res => {
           if (!res.ok) throw new Error("無自動檔案");
@@ -523,7 +520,6 @@
           processWorkbook(workbook, false);
         })
         .catch(err => {
-          console.log("無法自動 fetch，請手動上傳 Excel 一次。");
           updateLessonDropdown();
           onFilterChange();
         });
@@ -558,7 +554,6 @@
         };
       });
 
-      // 永久儲存至 localStorage
       try {
         localStorage.setItem('japanese_vocabulary_cache', JSON.stringify(fullVocabularyList));
       } catch(e) {
@@ -772,7 +767,7 @@
     }
 
     // ==========================================
-    // 語音發音核心：依據選單控制項 (LocalCard vs GitHubCard)
+    // 語音發音核心：Google TTS vs Web Speech API
     // ==========================================
     function playJapaneseAudio(e) {
       if (e) e.stopPropagation();
@@ -800,16 +795,24 @@
       const cleanText = text.trim();
       const engine = document.getElementById('ttsEngineSelect').value;
 
-      if (engine === 'local') {
-        // LocalCard 模式 (Web Speech API -> 支援耳機)
-        speakNativeTTS(cleanText);
-      } else {
-        // GitHubCard 模式 (Google TTS -> 支援 iPhone)
+      if (engine === 'google') {
+        // Google Translate TTS API (本機預設)
         speakGoogleTTS(cleanText);
+      } else {
+        // Web Speech API (GitHub / iPhone 預設)
+        speakNativeTTS(cleanText);
       }
     }
 
-    // LocalCard 模式發音函式
+    function speakGoogleTTS(text) {
+      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=${encodeURIComponent(text)}`;
+      const audio = new Audio(ttsUrl);
+      audio.play().catch(error => {
+        console.warn("Google TTS 播放受限，自動改用 Web Speech API：", error);
+        speakNativeTTS(text);
+      });
+    }
+
     function speakNativeTTS(text) {
       if (!('speechSynthesis' in window)) {
         alert('您的瀏覽器不支援語音合成功能');
@@ -820,16 +823,6 @@
       utterance.lang = 'ja-JP';
       utterance.rate = 0.9;
       window.speechSynthesis.speak(utterance);
-    }
-
-    // GitHubCard 模式發音函式
-    function speakGoogleTTS(text) {
-      const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=ja&q=${encodeURIComponent(text)}`;
-      const audio = new Audio(ttsUrl);
-      audio.play().catch(error => {
-        console.warn("Google TTS 播放受限，自動改用原生發音：", error);
-        speakNativeTTS(text);
-      });
     }
 
     function renderTable() {
